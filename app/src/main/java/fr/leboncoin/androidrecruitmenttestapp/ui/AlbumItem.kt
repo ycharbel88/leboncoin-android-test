@@ -26,13 +26,13 @@ import com.adevinta.spark.ExperimentalSparkApi
 import com.adevinta.spark.SparkTheme
 import com.adevinta.spark.components.card.Card
 import com.adevinta.spark.components.chips.ChipTinted
-import fr.leboncoin.data.network.model.AlbumDto
+import fr.leboncoin.domain.model.Album
 
 @OptIn(ExperimentalSparkApi::class)
 @Composable
 fun AlbumItem(
-    album: AlbumDto,
-    onItemSelected : (AlbumDto) -> Unit,
+    album: Album,
+    onItemSelected : (Album) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(

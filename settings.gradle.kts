@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "Android RecruitmentTest App"
 include(":app")
 include(":data")
+include(":domain")

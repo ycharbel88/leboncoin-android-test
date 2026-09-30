@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adevinta.spark.components.scaffold.Scaffold
 import fr.leboncoin.androidrecruitmenttestapp.AlbumsViewModel
-import fr.leboncoin.data.network.model.AlbumDto
+import fr.leboncoin.domain.model.Album
 
 @Composable
 fun AlbumsScreen(
     viewModel: AlbumsViewModel,
-    onItemSelected : (AlbumDto) -> Unit,
+    onItemSelected : (Album) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val albums by viewModel.albums.collectAsStateWithLifecycle(emptyList())
