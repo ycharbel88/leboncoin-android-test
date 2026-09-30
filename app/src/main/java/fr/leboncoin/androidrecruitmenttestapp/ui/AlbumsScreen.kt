@@ -1,36 +1,124 @@
 package fr.leboncoin.androidrecruitmenttestapp.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.adevinta.spark.SparkTheme
+import com.adevinta.spark.components.buttons.ButtonFilled
+import com.adevinta.spark.components.progress.Spinner
 import com.adevinta.spark.components.scaffold.Scaffold
-import fr.leboncoin.androidrecruitmenttestapp.AlbumsViewModel
 import fr.leboncoin.domain.model.Album
 
 @Composable
 fun AlbumsScreen(
-    viewModel: AlbumsViewModel,
-    onItemSelected : (Album) -> Unit,
+    uiState: AlbumsUiState,
+    onItemSelected: (Album) -> Unit,
+    onRefresh: () -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val albums by viewModel.albums.collectAsStateWithLifecycle(emptyList())
+    Scaffold(modifier = modifier) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center,
+        ) {
+            when (uiState) {
+                is AlbumsUiState.Loading -> Spinner()
 
-    LaunchedEffect(Unit) { viewModel.loadAlbums() }
+                is AlbumsUiState.Empty -> {
+                    AlbumsMessage(
+                        message = "No albums found",
+                        buttonText = "Refresh",
+                        onClick = onRefresh,
+                    )
+                }
 
-    Scaffold(modifier = modifier) {
+                is AlbumsUiState.Error -> {
+                    if (uiState.albums.isEmpty()) {
+                        AlbumsMessage(
+                            message = uiState.message,
+                            buttonText = "Retry",
+                            onClick = onRetry,
+                        )
+                    } else {
+                        AlbumsContent(
+                            albums = uiState.albums,
+                            isRefreshing = false,
+                            errorMessage = uiState.message,
+                            onItemSelected = onItemSelected,
+                            onRefresh = onRefresh,
+                            onRetry = onRetry,
+                        )
+                    }
+                }
+
+                is AlbumsUiState.Success -> {
+                    AlbumsContent(
+                        albums = uiState.albums,
+                        isRefreshing = uiState.isRefreshing,
+                        errorMessage = null,
+                        onItemSelected = onItemSelected,
+                        onRefresh = onRefresh,
+                        onRetry = onRetry,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlbumsContent(
+    albums: List<Album>,
+    isRefreshing: Boolean,
+    errorMessage: String?,
+    onItemSelected: (Album) -> Unit,
+    onRefresh: () -> Unit,
+    onRetry: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    style = SparkTheme.typography.body1,
+                )
+            }
+
+            if (isRefreshing) {
+                Spinner()
+            }
+        }
+
         LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = it,
         ) {
             items(
                 items = albums,
-                key = { album -> album.id }
+                key = { album -> album.id },
             ) { album ->
                 AlbumItem(
                     album = album,
@@ -38,5 +126,30 @@ fun AlbumsScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun AlbumsMessage(
+    message: String,
+    buttonText: String,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = message,
+            style = SparkTheme.typography.body1,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ButtonFilled(
+            text = buttonText,
+            onClick = onClick,
+        )
     }
 }
