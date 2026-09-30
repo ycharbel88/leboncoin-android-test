@@ -2,15 +2,13 @@ package fr.leboncoin.androidrecruitmenttestapp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import fr.leboncoin.data.network.model.AlbumDto
 import fr.leboncoin.data.repository.AlbumRepository
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-@OptIn(DelicateCoroutinesApi::class)
 class AlbumsViewModel(
     private val repository: AlbumRepository,
 ) : ViewModel() {
@@ -19,7 +17,7 @@ class AlbumsViewModel(
     val albums: SharedFlow<List<AlbumDto>> = _albums
 
     fun loadAlbums() {
-        GlobalScope.launch {
+        viewModelScope.launch {
             try {
                 _albums.emit(repository.getAllAlbums())
             } catch (_: Exception) { /* TODO: Handle errors */ }
