@@ -19,6 +19,7 @@ fun AlbumsScreenRoute(
     AlbumsScreen(
         uiState = uiState,
         onItemSelected = onItemSelected,
+        onFavoriteToggle = viewModel::toggleFavorite,
         onRefresh = viewModel::refresh,
         onRetry = viewModel::retry,
         modifier = modifier,

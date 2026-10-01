@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.leboncoin.androidrecruitmenttestapp.ui.AlbumsUiState
 import fr.leboncoin.domain.model.Album
 import fr.leboncoin.domain.usecase.GetAlbumsUseCase
+import fr.leboncoin.domain.usecase.ToggleFavoriteUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AlbumsViewModel @Inject constructor(
     private val getAlbumsUseCase: GetAlbumsUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AlbumsUiState>(AlbumsUiState.Loading)
@@ -38,6 +40,23 @@ class AlbumsViewModel @Inject constructor(
 
     fun retry() {
         fetchAlbumsInternal(isUserRefresh = false)
+    }
+
+    fun toggleFavorite(albumId: Int) {
+        viewModelScope.launch {
+            try {
+                toggleFavoriteUseCase(albumId)
+                val currentList = getCurrentAlbums()
+                if (currentList.isNotEmpty()) {
+                    val updatedList = currentList.map { album ->
+                        if (album.id == albumId) album.copy(isFavorite = !album.isFavorite) else album
+                    }
+                    _uiState.value = AlbumsUiState.Success(albums = updatedList)
+                }
+            } catch (_: Exception) {
+                // Ignore transient favorite failure
+            }
+        }
     }
 
     private fun fetchAlbumsInternal(isUserRefresh: Boolean) {

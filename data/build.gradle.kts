@@ -41,6 +41,10 @@ android {
         implementation(libs.hilt.android)
         ksp(libs.hilt.compiler)
 
+        implementation(libs.androidx.room.runtime)
+        implementation(libs.androidx.room.ktx)
+        ksp(libs.androidx.room.compiler)
+
         implementation(libs.retrofit.core)
         implementation(libs.retrofit.kotlin.serialization)
         implementation(libs.okhttp.logging)
@@ -48,6 +52,7 @@ android {
         implementation(libs.kotlin.serialization.json)
 
         testImplementation(libs.junit)
+        testImplementation(libs.kotlinx.coroutines.test)
         androidTestImplementation(libs.androidx.junit) // Useless dependency
         androidTestImplementation(libs.androidx.espresso.core) // Useless dependency
     }

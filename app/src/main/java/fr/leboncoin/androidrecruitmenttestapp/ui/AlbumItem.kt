@@ -9,10 +9,16 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,8 +38,9 @@ import fr.leboncoin.domain.model.Album
 @Composable
 fun AlbumItem(
     album: Album,
-    onItemSelected : (Album) -> Unit,
+    onItemSelected: (Album) -> Unit,
     modifier: Modifier = Modifier,
+    onFavoriteToggle: ((Int) -> Unit)? = null,
 ) {
     Card(
         modifier = modifier
@@ -42,7 +49,9 @@ fun AlbumItem(
             .padding(horizontal = 16.dp),
         onClick = { onItemSelected(album) },
     ) {
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(album.thumbnailUrl)
@@ -54,7 +63,7 @@ fun AlbumItem(
                     .crossfade(true)
                     .build(),
                 contentDescription = album.title,
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxHeight()
                     .aspectRatio(1f),
                 contentScale = ContentScale.Crop
@@ -62,7 +71,7 @@ fun AlbumItem(
 
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
                     .padding(14.dp),
             ) {
                 Text(
@@ -86,6 +95,17 @@ fun AlbumItem(
                     )
                 }
             }
+
+                IconButton(
+                    onClick = { onFavoriteToggle?.invoke(album.id) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = if (album.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (album.isFavorite) Color.Red else Color.Gray,
+                    )
+                }
+            }
         }
-    }
 }

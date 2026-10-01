@@ -28,6 +28,7 @@ fun AlbumsScreen(
     onRefresh: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onFavoriteToggle: ((Int) -> Unit)? = null,
 ) {
     Scaffold(modifier = modifier) { paddingValues ->
         Box(
@@ -62,6 +63,7 @@ fun AlbumsScreen(
                             onItemSelected = onItemSelected,
                             onRefresh = onRefresh,
                             onRetry = onRetry,
+                            onFavoriteToggle = onFavoriteToggle,
                         )
                     }
                 }
@@ -74,6 +76,7 @@ fun AlbumsScreen(
                         onItemSelected = onItemSelected,
                         onRefresh = onRefresh,
                         onRetry = onRetry,
+                        onFavoriteToggle = onFavoriteToggle,
                     )
                 }
             }
@@ -89,6 +92,7 @@ private fun AlbumsContent(
     onItemSelected: (Album) -> Unit,
     onRefresh: () -> Unit,
     onRetry: () -> Unit,
+    onFavoriteToggle: ((Int) -> Unit)? = null,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -123,6 +127,7 @@ private fun AlbumsContent(
                 AlbumItem(
                     album = album,
                     onItemSelected = onItemSelected,
+                    onFavoriteToggle = onFavoriteToggle,
                 )
             }
         }
