@@ -1,0 +1,238 @@
+package fr.leboncoin.androidrecruitmenttestapp.ui.main
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.window.core.layout.WindowSizeClass
+import com.adevinta.spark.SparkTheme
+import com.adevinta.spark.components.scaffold.Scaffold
+import fr.leboncoin.androidrecruitmenttestapp.R
+import fr.leboncoin.androidrecruitmenttestapp.ui.detail.AlbumDetailScreenRoute
+import fr.leboncoin.androidrecruitmenttestapp.ui.albums.AlbumsScreenRoute
+import fr.leboncoin.androidrecruitmenttestapp.ui.favorites.FavoritesScreenRoute
+import fr.leboncoin.domain.model.Album
+import kotlinx.coroutines.launch
+
+private enum class AlbumTab(
+    val label: String,
+    val icon: ImageVector,
+) {
+    Albums(
+        label = "Albums",
+        icon = Icons.AutoMirrored.Filled.List,
+    ),
+    Favorites(
+        label = "Favorites",
+        icon = Icons.Default.Favorite,
+    ),
+}
+
+@OptIn(
+    ExperimentalMaterial3AdaptiveApi::class,
+    ExperimentalMaterial3Api::class
+)
+@Composable
+fun AdaptiveMainScreen(
+    modifier: Modifier = Modifier,
+) {
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    val isCompact = !windowSizeClass.isWidthAtLeastBreakpoint(
+        WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
+    )
+    val navigator = rememberListDetailPaneScaffoldNavigator<Int>()
+    val coroutineScope = rememberCoroutineScope()
+    var selectedTab by rememberSaveable {
+        mutableStateOf(AlbumTab.Albums)
+    }
+
+    val onAlbumSelected: (Album) -> Unit = { album ->
+        coroutineScope.launch {
+            navigator.navigateTo(
+                pane = ListDetailPaneScaffoldRole.Detail,
+                contentKey = album.id,
+            )
+        }
+    }
+
+    val onNavigateBack: () -> Unit = {
+        coroutineScope.launch {
+            navigator.navigateBack()
+        }
+    }
+
+    val canNavigateBack = navigator.canNavigateBack()
+
+    BackHandler(
+        enabled = canNavigateBack,
+        onBack = onNavigateBack,
+    )
+
+    val isDetailFullScreen = isCompact &&
+            navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] ==
+            PaneAdaptedValue.Expanded
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = if (isDetailFullScreen) {
+                            stringResource(R.string.title_album_details)
+                        } else {
+                            selectedTab.label
+                        }
+                    )
+                },
+                navigationIcon = {
+                    if (isDetailFullScreen && canNavigateBack) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.back_content_description),
+                            )
+                        }
+                    }
+                },
+            )
+        },
+
+        bottomBar = {
+            if (isCompact && !isDetailFullScreen) {
+                AlbumNavigationBar(
+                    selectedTab = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                )
+            }
+        },
+    ) { paddingValues ->
+        ListDetailPaneScaffold(
+
+            directive = navigator.scaffoldDirective,
+            value = navigator.scaffoldValue,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues),
+            listPane = {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    if (!isCompact) {
+                        AlbumNavigationBar(
+                            selectedTab = selectedTab,
+                            onTabSelected = { selectedTab = it },
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(Color.Red)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.TopStart,
+                        ) {
+                        when (selectedTab) {
+                            AlbumTab.Albums -> AlbumsScreenRoute(
+                                onItemSelected = onAlbumSelected,
+                            )
+
+                            AlbumTab.Favorites -> FavoritesScreenRoute(
+                                onItemSelected = onAlbumSelected,
+                            )
+                        }
+                    }
+                }
+            },
+            detailPane = {
+                val selectedAlbumId = navigator.currentDestination?.contentKey
+
+                if (selectedAlbumId != null) {
+                    AlbumDetailScreenRoute(
+                        albumId = selectedAlbumId,
+                    )
+                } else {
+                    AlbumDetailPlaceholder()
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun AlbumNavigationBar(
+    selectedTab: AlbumTab,
+    onTabSelected: (AlbumTab) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    NavigationBar(
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+    ) {
+        AlbumTab.entries.forEach { tab ->
+            NavigationBarItem(
+                selected = selectedTab == tab,
+                onClick = { onTabSelected(tab) },
+                icon = {
+                    Icon(
+                        imageVector = tab.icon,
+                        contentDescription = null,
+                    )
+                },
+                label = {
+                    Text(text = tab.label)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun AlbumDetailPlaceholder(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.select_album_to_view_details),
+            style = SparkTheme.typography.body1,
+        )
+    }
+}

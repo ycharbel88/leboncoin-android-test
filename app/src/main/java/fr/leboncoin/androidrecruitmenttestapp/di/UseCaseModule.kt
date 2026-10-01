@@ -6,8 +6,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import fr.leboncoin.domain.repository.AlbumRepository
 import fr.leboncoin.domain.usecase.GetAlbumByIdUseCase
+import fr.leboncoin.domain.usecase.GetAlbumsStreamUseCase
 import fr.leboncoin.domain.usecase.GetAlbumsUseCase
 import fr.leboncoin.domain.usecase.GetFavoriteAlbumsUseCase
+import fr.leboncoin.domain.usecase.RefreshAlbumsUseCase
 import fr.leboncoin.domain.usecase.ToggleFavoriteUseCase
 import javax.inject.Singleton
 
@@ -20,6 +22,18 @@ object UseCaseModule {
     fun provideGetAlbumsUseCase(
         albumRepository: AlbumRepository,
     ): GetAlbumsUseCase = GetAlbumsUseCase(albumRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetAlbumsStreamUseCase(
+        albumRepository: AlbumRepository,
+    ): GetAlbumsStreamUseCase = GetAlbumsStreamUseCase(albumRepository)
+
+    @Provides
+    @Singleton
+    fun provideRefreshAlbumsUseCase(
+        albumRepository: AlbumRepository,
+    ): RefreshAlbumsUseCase = RefreshAlbumsUseCase(albumRepository)
 
     @Provides
     @Singleton

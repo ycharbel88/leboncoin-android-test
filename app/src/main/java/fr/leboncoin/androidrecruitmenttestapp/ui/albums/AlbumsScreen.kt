@@ -1,4 +1,4 @@
-package fr.leboncoin.androidrecruitmenttestapp.ui
+package fr.leboncoin.androidrecruitmenttestapp.ui.albums
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,11 +14,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.adevinta.spark.SparkTheme
 import com.adevinta.spark.components.buttons.ButtonFilled
 import com.adevinta.spark.components.progress.Spinner
 import com.adevinta.spark.components.scaffold.Scaffold
+import fr.leboncoin.androidrecruitmenttestapp.R
+import fr.leboncoin.androidrecruitmenttestapp.ui.components.AlbumItem
+import fr.leboncoin.androidrecruitmenttestapp.ui.state.AlbumsUiState
 import fr.leboncoin.domain.model.Album
 
 @Composable
@@ -43,7 +47,7 @@ fun AlbumsScreen(
                 is AlbumsUiState.Empty -> {
                     AlbumsMessage(
                         message = "No albums found",
-                        buttonText = "Refresh",
+                        buttonText = stringResource(R.string.refresh_btn),
                         onClick = onRefresh,
                     )
                 }
@@ -52,7 +56,7 @@ fun AlbumsScreen(
                     if (uiState.albums.isEmpty()) {
                         AlbumsMessage(
                             message = uiState.message,
-                            buttonText = "Retry",
+                            buttonText = stringResource(R.string.retry_btn),
                             onClick = onRetry,
                         )
                     } else {
@@ -61,8 +65,6 @@ fun AlbumsScreen(
                             isRefreshing = false,
                             errorMessage = uiState.message,
                             onItemSelected = onItemSelected,
-                            onRefresh = onRefresh,
-                            onRetry = onRetry,
                             onFavoriteToggle = onFavoriteToggle,
                         )
                     }
@@ -74,8 +76,6 @@ fun AlbumsScreen(
                         isRefreshing = uiState.isRefreshing,
                         errorMessage = null,
                         onItemSelected = onItemSelected,
-                        onRefresh = onRefresh,
-                        onRetry = onRetry,
                         onFavoriteToggle = onFavoriteToggle,
                     )
                 }
@@ -90,8 +90,6 @@ private fun AlbumsContent(
     isRefreshing: Boolean,
     errorMessage: String?,
     onItemSelected: (Album) -> Unit,
-    onRefresh: () -> Unit,
-    onRetry: () -> Unit,
     onFavoriteToggle: ((Int) -> Unit)? = null,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {

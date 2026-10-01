@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Android RecruitmentTest App</string>
+    <string name="select_album_to_view_details">Select an album to view details</string>
+    <string name="album_id_label">Album #%1$d</string>
+    <string name="track_id_label">Track #%1$d</string>
+    <string name="favorite_btn_content_description">Favorite</string>
+    <string name="title_album_details">Album details</string>
+    <string name="back_content_description">Back</string>
+    <string name="retry_btn">Retry</string>
+    <string name="refresh_btn">Refresh</string>
 </resources>

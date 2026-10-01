@@ -1,27 +1,29 @@
-package fr.leboncoin.androidrecruitmenttestapp.ui
+package fr.leboncoin.androidrecruitmenttestapp.ui.detail
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.leboncoin.androidrecruitmenttestapp.AlbumsViewModel
-import fr.leboncoin.domain.model.Album
 
 @Composable
-fun AlbumsScreenRoute(
-    onItemSelected: (Album) -> Unit,
+fun AlbumDetailScreenRoute(
+    albumId: Int? = null,
     modifier: Modifier = Modifier,
-    viewModel: AlbumsViewModel = hiltViewModel(),
+    viewModel: AlbumDetailViewModel = hiltViewModel(),
 ) {
+    LaunchedEffect(albumId) {
+        if (albumId != null && albumId != -1) {
+            viewModel.getDetailAlbum(albumId)
+        }
+    }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    AlbumsScreen(
+    AlbumDetailScreen(
         uiState = uiState,
-        onItemSelected = onItemSelected,
         onFavoriteToggle = viewModel::toggleFavorite,
-        onRefresh = viewModel::refresh,
-        onRetry = viewModel::retry,
         modifier = modifier,
     )
 }
