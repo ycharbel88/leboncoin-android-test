@@ -50,12 +50,13 @@ android {
         implementation(libs.okhttp.logging)
 
         implementation(libs.kotlin.serialization.json)
-
+        testImplementation(libs.cash.turbine)
+        testImplementation(libs.org.robolectric)
+        testImplementation(libs.mockito.core)
+        testImplementation(libs.mockito.kotlin)
         testImplementation(libs.junit)
         testImplementation(libs.kotlinx.coroutines.test)
-        androidTestImplementation(libs.androidx.junit) // Useless dependency
-        androidTestImplementation(libs.androidx.espresso.core) // Useless dependency
-    }
+       }
 }
 
 kotlin {

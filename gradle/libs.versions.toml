@@ -22,6 +22,10 @@ hiltNavigationCompose = "1.2.0"
 room = "2.6.1"
 navigationCompose = "2.8.8"
 material3Adaptive = "1.0.0"
+turbine = "1.2.1"
+robolectric = "4.17"
+mockito = "5.24.0"
+mockitoKotlin = "6.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,6 +77,12 @@ navigation-compose = { group = "androidx.navigation", name = "navigation-compose
 adaptive-core = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "material3Adaptive" }
 adaptive-layout = { group = "androidx.compose.material3.adaptive", name = "adaptive-layout", version.ref = "material3Adaptive" }
 adaptive-navigation = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation", version.ref = "material3Adaptive" }
+
+# Testing
+cash-turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+org-robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

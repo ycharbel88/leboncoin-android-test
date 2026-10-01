@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 class AlbumRepositoryImpl @Inject constructor(
     private val albumApiService: AlbumApiService,
@@ -48,6 +49,8 @@ class AlbumRepositoryImpl @Inject constructor(
     override suspend fun getAllAlbums(): List<Album> {
         try {
             refreshAlbums()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             val cached = getAlbumsStream().first()
             if (cached.isNotEmpty()) {

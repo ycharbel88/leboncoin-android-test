@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -33,6 +34,7 @@ import com.adevinta.spark.SparkTheme
 import com.adevinta.spark.components.card.Card
 import com.adevinta.spark.components.chips.ChipTinted
 import fr.leboncoin.androidrecruitmenttestapp.R
+import fr.leboncoin.androidrecruitmenttestapp.ui.TestTags
 import fr.leboncoin.domain.model.Album
 
 private val AlbumItemHeight = 120.dp
@@ -50,7 +52,8 @@ fun AlbumItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .height(AlbumItemHeight),
+            .height(AlbumItemHeight)
+            .testTag("${TestTags.ALBUM_ITEM}${album.id}"),
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -72,7 +75,9 @@ fun AlbumItem(
                 AlbumFavoriteButton(
                     isFavorite = album.isFavorite,
                     onClick = { onFavoriteToggle(album.id) },
-                    modifier = Modifier.padding(end = 8.dp),
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .testTag("${TestTags.FAVORITE_BUTTON}${album.id}"),
                 )
             }
         }

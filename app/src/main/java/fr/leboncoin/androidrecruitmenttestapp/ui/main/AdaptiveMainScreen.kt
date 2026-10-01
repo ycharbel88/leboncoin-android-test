@@ -36,11 +36,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.window.core.layout.WindowSizeClass
 import com.adevinta.spark.SparkTheme
 import com.adevinta.spark.components.scaffold.Scaffold
 import fr.leboncoin.androidrecruitmenttestapp.R
+import fr.leboncoin.androidrecruitmenttestapp.ui.TestTags
 import fr.leboncoin.androidrecruitmenttestapp.ui.detail.AlbumDetailScreenRoute
 import fr.leboncoin.androidrecruitmenttestapp.ui.albums.AlbumsScreenRoute
 import fr.leboncoin.androidrecruitmenttestapp.ui.favorites.FavoritesScreenRoute
@@ -68,6 +70,16 @@ private enum class AlbumTab(
 @Composable
 fun AdaptiveMainScreen(
     modifier: Modifier = Modifier,
+    albumsContent: @Composable (onItemSelected: (Album) -> Unit) -> Unit = { onItemSelected ->
+        AlbumsScreenRoute(onItemSelected = onItemSelected)
+    },
+    favoritesContent: @Composable (onItemSelected: (Album) -> Unit) -> Unit = { onItemSelected ->
+        FavoritesScreenRoute(onItemSelected = onItemSelected)
+    },
+    detailContent: @Composable (albumId: Int?) -> Unit = { albumId ->
+        if (albumId != null) AlbumDetailScreenRoute(albumId = albumId)
+        else AlbumDetailPlaceholder()
+    },
 ) {
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     val isCompact = !windowSizeClass.isWidthAtLeastBreakpoint(
@@ -115,7 +127,8 @@ fun AdaptiveMainScreen(
                             stringResource(R.string.title_album_details)
                         } else {
                             selectedTab.label
-                        }
+                        },
+                        modifier = Modifier.testTag(TestTags.TOOLBAR_TITLE),
                     )
                 },
                 navigationIcon = {
@@ -136,6 +149,7 @@ fun AdaptiveMainScreen(
                 AlbumNavigationBar(
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it },
+                    modifier = Modifier.testTag(TestTags.BOTTOM_NAV_BAR),
                 )
             }
         },
@@ -167,27 +181,15 @@ fun AdaptiveMainScreen(
                         contentAlignment = Alignment.TopStart,
                         ) {
                         when (selectedTab) {
-                            AlbumTab.Albums -> AlbumsScreenRoute(
-                                onItemSelected = onAlbumSelected,
-                            )
-
-                            AlbumTab.Favorites -> FavoritesScreenRoute(
-                                onItemSelected = onAlbumSelected,
-                            )
+                            AlbumTab.Albums -> albumsContent(onAlbumSelected)
+                            AlbumTab.Favorites -> favoritesContent(onAlbumSelected)
                         }
                     }
                 }
             },
             detailPane = {
                 val selectedAlbumId = navigator.currentDestination?.contentKey
-
-                if (selectedAlbumId != null) {
-                    AlbumDetailScreenRoute(
-                        albumId = selectedAlbumId,
-                    )
-                } else {
-                    AlbumDetailPlaceholder()
-                }
+                detailContent(selectedAlbumId)
             },
         )
     }

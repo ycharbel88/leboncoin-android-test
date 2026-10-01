@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.adevinta.spark.SparkTheme
@@ -21,6 +22,7 @@ import com.adevinta.spark.components.buttons.ButtonFilled
 import com.adevinta.spark.components.progress.Spinner
 import com.adevinta.spark.components.scaffold.Scaffold
 import fr.leboncoin.androidrecruitmenttestapp.R
+import fr.leboncoin.androidrecruitmenttestapp.ui.TestTags
 import fr.leboncoin.androidrecruitmenttestapp.ui.components.AlbumItem
 import fr.leboncoin.androidrecruitmenttestapp.ui.state.AlbumsUiState
 import fr.leboncoin.domain.model.Album
@@ -42,13 +44,15 @@ fun AlbumsScreen(
             contentAlignment = Alignment.Center,
         ) {
             when (uiState) {
-                is AlbumsUiState.Loading -> Spinner()
+                is AlbumsUiState.Loading -> Spinner(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
 
                 is AlbumsUiState.Empty -> {
                     AlbumsMessage(
                         message = "No albums found",
                         buttonText = stringResource(R.string.refresh_btn),
                         onClick = onRefresh,
+                        modifier = Modifier.testTag(TestTags.EMPTY_STATE),
+                        buttonTestTag = TestTags.REFRESH_BUTTON,
                     )
                 }
 
@@ -58,6 +62,8 @@ fun AlbumsScreen(
                             message = uiState.message,
                             buttonText = stringResource(R.string.retry_btn),
                             onClick = onRetry,
+                            modifier = Modifier.testTag(TestTags.ERROR_STATE),
+                            buttonTestTag = TestTags.RETRY_BUTTON,
                         )
                     } else {
                         AlbumsContent(
@@ -108,14 +114,15 @@ private fun AlbumsContent(
             }
 
             if (isRefreshing) {
-                Spinner()
+                Spinner(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
             }
         }
 
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .testTag(TestTags.ALBUMS_LIST),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             items(
@@ -137,9 +144,11 @@ private fun AlbumsMessage(
     message: String,
     buttonText: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    buttonTestTag: String? = null,
 ) {
     Column(
-        modifier = Modifier.padding(16.dp),
+        modifier = modifier.padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -153,6 +162,7 @@ private fun AlbumsMessage(
         ButtonFilled(
             text = buttonText,
             onClick = onClick,
+            modifier = if (buttonTestTag != null) Modifier.testTag(buttonTestTag) else Modifier,
         )
     }
 }

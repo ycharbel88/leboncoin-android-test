@@ -24,8 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import fr.leboncoin.androidrecruitmenttestapp.ui.TestTags
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -54,7 +56,7 @@ fun AlbumDetailScreen(
             contentAlignment = Alignment.Center,
         ) {
             when (uiState) {
-                is AlbumDetailUiState.Loading -> Spinner()
+                is AlbumDetailUiState.Loading -> Spinner(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
 
                 is AlbumDetailUiState.Error -> Text(
                     text = uiState.message,
