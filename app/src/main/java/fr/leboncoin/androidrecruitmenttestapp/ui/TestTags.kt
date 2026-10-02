@@ -11,4 +11,5 @@ object TestTags {
     const val REFRESH_BUTTON = "refresh_button"
     const val TOOLBAR_TITLE = "toolbar_title"
     const val BOTTOM_NAV_BAR = "bottom_nav_bar"
+    const val ALBUMS_REFRESH_RETRY = "albums_refresh_retry"
 }

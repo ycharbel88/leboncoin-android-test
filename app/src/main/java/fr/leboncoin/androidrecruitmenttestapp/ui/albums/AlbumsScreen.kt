@@ -1,88 +1,84 @@
 package fr.leboncoin.androidrecruitmenttestapp.ui.albums
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Text
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.adevinta.spark.SparkTheme
-import com.adevinta.spark.components.buttons.ButtonFilled
-import com.adevinta.spark.components.progress.Spinner
-import com.adevinta.spark.components.scaffold.Scaffold
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import fr.leboncoin.androidrecruitmenttestapp.R
 import fr.leboncoin.androidrecruitmenttestapp.ui.TestTags
 import fr.leboncoin.androidrecruitmenttestapp.ui.components.AlbumItem
-import fr.leboncoin.androidrecruitmenttestapp.ui.state.AlbumsUiState
+import fr.leboncoin.androidrecruitmenttestapp.ui.components.AlbumsEmpty
+import fr.leboncoin.androidrecruitmenttestapp.ui.components.AlbumsError
+import fr.leboncoin.androidrecruitmenttestapp.ui.components.AlbumsErrorBanner
+import fr.leboncoin.androidrecruitmenttestapp.ui.components.AlbumsLayout
+import fr.leboncoin.androidrecruitmenttestapp.ui.components.AlbumsLoading
 import fr.leboncoin.domain.model.Album
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumsScreen(
-    uiState: AlbumsUiState,
+    pagingItems: LazyPagingItems<Album>,
+    isRefreshing: Boolean,
+    refreshError: String?,
     onItemSelected: (Album) -> Unit,
     onRefresh: () -> Unit,
     onRetry: () -> Unit,
+    onFavoriteToggle: ((Int) -> Unit)?,
+    onDismissError: () -> Unit,
     modifier: Modifier = Modifier,
-    onFavoriteToggle: ((Int) -> Unit)? = null,
 ) {
-    Scaffold(modifier = modifier) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentAlignment = Alignment.Center,
-        ) {
-            when (uiState) {
-                is AlbumsUiState.Loading -> Spinner(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
+    val loadStates = pagingItems.loadState
+    val pagingError = (loadStates.source.refresh as? LoadState.Error)
+        ?: (loadStates.refresh as? LoadState.Error)
+    val isLoading = isRefreshing ||
+        loadStates.source.refresh is LoadState.Loading ||
+        loadStates.refresh is LoadState.Loading
+    val isEmpty = pagingItems.itemCount == 0
+    val errorMessage = refreshError ?: pagingError?.let {
+        stringResource(R.string.albums_load_error)
+    }
+    val retry: () -> Unit = if (refreshError != null) {
+        onRetry
+    } else {
+        { pagingItems.retry() }
+    }
 
-                is AlbumsUiState.Empty -> {
-                    AlbumsMessage(
-                        message = "No albums found",
-                        buttonText = stringResource(R.string.refresh_btn),
-                        onClick = onRefresh,
-                        modifier = Modifier.testTag(TestTags.EMPTY_STATE),
-                        buttonTestTag = TestTags.REFRESH_BUTTON,
-                    )
-                }
-
-                is AlbumsUiState.Error -> {
-                    if (uiState.albums.isEmpty()) {
-                        AlbumsMessage(
-                            message = uiState.message,
-                            buttonText = stringResource(R.string.retry_btn),
-                            onClick = onRetry,
-                            modifier = Modifier.testTag(TestTags.ERROR_STATE),
-                            buttonTestTag = TestTags.RETRY_BUTTON,
-                        )
-                    } else {
-                        AlbumsContent(
-                            albums = uiState.albums,
-                            isRefreshing = false,
-                            errorMessage = uiState.message,
-                            onItemSelected = onItemSelected,
-                            onFavoriteToggle = onFavoriteToggle,
+    AlbumsLayout(modifier) {
+        when {
+            isEmpty && errorMessage != null -> AlbumsError(errorMessage, retry)
+            isEmpty && isLoading -> AlbumsLoading()
+            isEmpty -> AlbumsEmpty(onRefresh)
+            else -> PullToRefreshBox(
+                isRefreshing = isLoading,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (errorMessage != null) {
+                        AlbumsErrorBanner(
+                            message = errorMessage,
+                            onRetry = retry,
+                            onDismiss = if (refreshError != null) onDismissError else null,
                         )
                     }
-                }
-
-                is AlbumsUiState.Success -> {
-                    AlbumsContent(
-                        albums = uiState.albums,
-                        isRefreshing = uiState.isRefreshing,
-                        errorMessage = null,
+                    PagedAlbumsList(
+                        pagingItems = pagingItems,
                         onItemSelected = onItemSelected,
                         onFavoriteToggle = onFavoriteToggle,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
                     )
                 }
             }
@@ -91,44 +87,25 @@ fun AlbumsScreen(
 }
 
 @Composable
-private fun AlbumsContent(
-    albums: List<Album>,
-    isRefreshing: Boolean,
-    errorMessage: String?,
+private fun PagedAlbumsList(
+    pagingItems: LazyPagingItems<Album>,
     onItemSelected: (Album) -> Unit,
-    onFavoriteToggle: ((Int) -> Unit)? = null,
+    onFavoriteToggle: ((Int) -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (errorMessage != null) {
-                Text(
-                    text = errorMessage,
-                    style = SparkTheme.typography.body1,
-                )
-            }
+    val appendState = pagingItems.loadState.append
 
-            if (isRefreshing) {
-                Spinner(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
-            }
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .testTag(TestTags.ALBUMS_LIST),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            items(
-                items = albums,
-                key = { album -> album.id },
-            ) { album ->
+    LazyColumn(
+        modifier = modifier.testTag(TestTags.ALBUMS_LIST),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        items(
+            count = pagingItems.itemCount,
+            key = pagingItems.itemKey { it.id },
+            contentType = { "album" },
+        ) { index ->
+            val album = pagingItems[index]
+            if (album != null) {
                 AlbumItem(
                     album = album,
                     onItemSelected = onItemSelected,
@@ -136,33 +113,18 @@ private fun AlbumsContent(
                 )
             }
         }
-    }
-}
 
-@Composable
-private fun AlbumsMessage(
-    message: String,
-    buttonText: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    buttonTestTag: String? = null,
-) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = message,
-            style = SparkTheme.typography.body1,
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ButtonFilled(
-            text = buttonText,
-            onClick = onClick,
-            modifier = if (buttonTestTag != null) Modifier.testTag(buttonTestTag) else Modifier,
-        )
+        when (appendState) {
+            is LoadState.Loading -> item(key = "append_loading") {
+                AlbumsLoading()
+            }
+            is LoadState.Error -> item(key = "append_error") {
+                AlbumsError(
+                    message = stringResource(R.string.albums_load_error),
+                    onRetry = { pagingItems.retry() },
+                )
+            }
+            is LoadState.NotLoading -> Unit
+        }
     }
 }

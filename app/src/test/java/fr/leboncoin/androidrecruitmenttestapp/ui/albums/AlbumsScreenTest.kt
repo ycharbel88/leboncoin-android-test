@@ -3,13 +3,16 @@ package fr.leboncoin.androidrecruitmenttestapp.ui.albums
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.paging.PagingData
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.adevinta.spark.SparkTheme
 import fr.leboncoin.androidrecruitmenttestapp.ui.TestTags
-import fr.leboncoin.androidrecruitmenttestapp.ui.state.AlbumsUiState
 import fr.leboncoin.domain.model.Album
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -25,122 +28,167 @@ class AlbumsScreenTest {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
+    private val testAlbum = Album(
+        id = 42, albumId = 5, title = "Direct Screen Test Album",
+        url = "https://url/42", thumbnailUrl = "https://thumb/42",
+    )
+
+    // ── Loading ───────────────────────────────────────────────────────────────
+
     @Test
-    fun loadingState_displaysLoadingIndicator() {
+    fun loadingState_isRefreshing_withNoItems_displaysLoadingIndicator() {
         composeTestRule.setContent {
             SparkTheme {
+                val pagingItems = flowOf(PagingData.empty<Album>()).collectAsLazyPagingItems()
                 AlbumsScreen(
-                    uiState = AlbumsUiState.Loading,
+                    pagingItems = pagingItems,
+                    isRefreshing = true,
+                    refreshError = null,
                     onItemSelected = {},
                     onRefresh = {},
                     onRetry = {},
+                    onFavoriteToggle = null,
+                    onDismissError = {},
                 )
             }
         }
+        composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithTag(TestTags.LOADING_INDICATOR).assertIsDisplayed()
     }
 
-    @Test
-    fun emptyState_displaysMessageAndCallsRefresh() {
-        var refreshClicked = false
+    // ── Error (full-screen, no items) ─────────────────────────────────────────
 
+    @Test
+    fun errorState_noItems_withRefreshError_displaysErrorMessageAndRetryButton() {
+        var retryCalled = false
         composeTestRule.setContent {
             SparkTheme {
+                val pagingItems = flowOf(PagingData.empty<Album>()).collectAsLazyPagingItems()
                 AlbumsScreen(
-                    uiState = AlbumsUiState.Empty(isRefreshing = false),
+                    pagingItems = pagingItems,
+                    isRefreshing = false,
+                    refreshError = "Connection timeout",
                     onItemSelected = {},
-                    onRefresh = { refreshClicked = true },
-                    onRetry = {},
+                    onRefresh = {},
+                    onRetry = { retryCalled = true },
+                    onFavoriteToggle = null,
+                    onDismissError = {},
                 )
             }
         }
-
-        composeTestRule.onNodeWithTag(TestTags.EMPTY_STATE).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(TestTags.REFRESH_BUTTON).performClick()
-
-        assertTrue(refreshClicked)
-    }
-
-    @Test
-    fun errorState_displaysErrorMessageAndCallsRetry() {
-        var retryClicked = false
-
-        composeTestRule.setContent {
-            SparkTheme {
-                AlbumsScreen(
-                    uiState = AlbumsUiState.Error(message = "Connection timeout", albums = emptyList()),
-                    onItemSelected = {},
-                    onRefresh = {},
-                    onRetry = { retryClicked = true },
-                )
-            }
+        // Paging settles asynchronously; poll until error state appears
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            composeTestRule.onAllNodesWithTag(TestTags.ERROR_STATE).fetchSemanticsNodes().isNotEmpty()
         }
 
         composeTestRule.onNodeWithTag(TestTags.ERROR_STATE).assertIsDisplayed()
         composeTestRule.onNodeWithText("Connection timeout").assertIsDisplayed()
         composeTestRule.onNodeWithTag(TestTags.RETRY_BUTTON).performClick()
-
-        assertTrue(retryClicked)
+        assertTrue(retryCalled)
     }
 
-    @Test
-    fun successState_displaysAlbumsAndCallsOnItemSelected() {
-        var selectedAlbum: Album? = null
-        val testAlbum = Album(
-            id = 42,
-            albumId = 5,
-            title = "Awesome Test Album Title",
-            url = "https://url/42",
-            thumbnailUrl = "https://thumb/42",
-            isFavorite = false,
-        )
+    // ── Success ───────────────────────────────────────────────────────────────
 
+    @Test
+    fun successState_displaysAlbumList_andItemClickFiresCallback() {
+        var selected: Album? = null
         composeTestRule.setContent {
             SparkTheme {
+                val pagingItems = flowOf(PagingData.from(listOf(testAlbum))).collectAsLazyPagingItems()
                 AlbumsScreen(
-                    uiState = AlbumsUiState.Success(albums = listOf(testAlbum)),
-                    onItemSelected = { selectedAlbum = it },
+                    pagingItems = pagingItems,
+                    isRefreshing = false,
+                    refreshError = null,
+                    onItemSelected = { selected = it },
                     onRefresh = {},
                     onRetry = {},
+                    onFavoriteToggle = null,
+                    onDismissError = {},
                 )
             }
         }
+        composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithTag(TestTags.ALBUMS_LIST).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Awesome Test Album Title").assertIsDisplayed()
-
+        composeTestRule.onNodeWithText("Direct Screen Test Album").assertIsDisplayed()
         composeTestRule.onNodeWithTag("${TestTags.ALBUM_ITEM}42").performClick()
-
-        assertEquals(testAlbum, selectedAlbum)
+        assertEquals(testAlbum, selected)
     }
 
     @Test
-    fun successState_togglingFavorite_callsOnFavoriteToggle() {
+    fun successState_favoriteToggle_callsOnFavoriteToggle() {
         var toggledId: Int? = null
-        val testAlbum = Album(
-            id = 99,
-            albumId = 1,
-            title = "Favorited Album Title",
-            url = "https://url/99",
-            thumbnailUrl = "https://thumb/99",
-            isFavorite = false,
-        )
-
         composeTestRule.setContent {
             SparkTheme {
+                val pagingItems = flowOf(PagingData.from(listOf(testAlbum))).collectAsLazyPagingItems()
                 AlbumsScreen(
-                    uiState = AlbumsUiState.Success(albums = listOf(testAlbum)),
+                    pagingItems = pagingItems,
+                    isRefreshing = false,
+                    refreshError = null,
                     onItemSelected = {},
                     onRefresh = {},
                     onRetry = {},
                     onFavoriteToggle = { toggledId = it },
+                    onDismissError = {},
                 )
             }
         }
+        composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithTag("${TestTags.FAVORITE_BUTTON}99").performClick()
+        composeTestRule.onNodeWithTag("${TestTags.FAVORITE_BUTTON}42").performClick()
+        assertEquals(42, toggledId)
+    }
 
-        assertEquals(99, toggledId)
+    // ── Error banner while list is shown ──────────────────────────────────────
+
+    @Test
+    fun successState_withRefreshError_showsErrorBannerAboveList() {
+        composeTestRule.setContent {
+            SparkTheme {
+                val pagingItems = flowOf(PagingData.from(listOf(testAlbum))).collectAsLazyPagingItems()
+                AlbumsScreen(
+                    pagingItems = pagingItems,
+                    isRefreshing = false,
+                    refreshError = "Refresh failed",
+                    onItemSelected = {},
+                    onRefresh = {},
+                    onRetry = {},
+                    onFavoriteToggle = null,
+                    onDismissError = {},
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // Error banner message visible above the list
+        composeTestRule.onNodeWithText("Refresh failed").assertIsDisplayed()
+        // Album list is still shown beneath the banner
+        composeTestRule.onNodeWithTag(TestTags.ALBUMS_LIST).assertIsDisplayed()
+    }
+
+    @Test
+    fun successState_withRefreshError_dismissBannerCallsOnDismissError() {
+        var dismissed = false
+        composeTestRule.setContent {
+            SparkTheme {
+                val pagingItems = flowOf(PagingData.from(listOf(testAlbum))).collectAsLazyPagingItems()
+                AlbumsScreen(
+                    pagingItems = pagingItems,
+                    isRefreshing = false,
+                    refreshError = "Refresh failed",
+                    onItemSelected = {},
+                    onRefresh = {},
+                    onRetry = {},
+                    onFavoriteToggle = null,
+                    onDismissError = { dismissed = true },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // The dismiss button appears in the error banner only when refreshError != null
+        composeTestRule.onNodeWithText("Dismiss").performClick()
+        assertTrue(dismissed)
     }
 }

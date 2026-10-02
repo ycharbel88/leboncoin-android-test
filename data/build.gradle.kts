@@ -35,6 +35,12 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     dependencies {
         implementation(project(":domain"))
 
@@ -44,6 +50,10 @@ android {
         implementation(libs.androidx.room.runtime)
         implementation(libs.androidx.room.ktx)
         ksp(libs.androidx.room.compiler)
+        implementation(libs.paging.runtime)
+        implementation(libs.room.paging)
+        testImplementation(libs.paging.testing)
+        testImplementation(libs.androidx.test.core)
 
         implementation(libs.retrofit.core)
         implementation(libs.retrofit.kotlin.serialization)

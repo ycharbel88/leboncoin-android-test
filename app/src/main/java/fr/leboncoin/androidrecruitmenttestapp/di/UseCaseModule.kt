@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import fr.leboncoin.domain.repository.AlbumRepository
 import fr.leboncoin.domain.usecase.GetAlbumByIdUseCase
+import fr.leboncoin.domain.usecase.GetAlbumsPagingUseCase
 import fr.leboncoin.domain.usecase.GetAlbumsStreamUseCase
 import fr.leboncoin.domain.usecase.GetAlbumsUseCase
 import fr.leboncoin.domain.usecase.GetFavoriteAlbumsUseCase
@@ -52,4 +53,10 @@ object UseCaseModule {
     fun provideGetAlbumByIdUseCase(
         albumRepository: AlbumRepository,
     ): GetAlbumByIdUseCase = GetAlbumByIdUseCase(albumRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetAlbumsPagingUseCase(
+        albumRepository: AlbumRepository,
+    ): GetAlbumsPagingUseCase = GetAlbumsPagingUseCase(albumRepository)
 }

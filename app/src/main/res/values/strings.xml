@@ -8,4 +8,9 @@
     <string name="back_content_description">Back</string>
     <string name="retry_btn">Retry</string>
     <string name="refresh_btn">Refresh</string>
+    <string name="albums_dismiss_error">Dismiss</string>
+    <string name="albums_load_error">Unable to load albums. Please try again.</string>
+    <string name="albums_empty">No albums found</string>
+    <string name="error_data_access">Unable to load or save data. Please try again.</string>
+    <string name="error_unexpected">Something went wrong. Please try again.\n</string>
 </resources>

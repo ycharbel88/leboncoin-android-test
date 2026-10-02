@@ -26,6 +26,7 @@ turbine = "1.2.1"
 robolectric = "4.17"
 mockito = "5.24.0"
 mockitoKotlin = "6.4.0"
+paging = "3.3.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -78,7 +79,15 @@ adaptive-core = { group = "androidx.compose.material3.adaptive", name = "adaptiv
 adaptive-layout = { group = "androidx.compose.material3.adaptive", name = "adaptive-layout", version.ref = "material3Adaptive" }
 adaptive-navigation = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation", version.ref = "material3Adaptive" }
 
+# Paging
+paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "paging" }
+paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
+paging-testing = { group = "androidx.paging", name = "paging-testing", version.ref = "paging" }
+room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
+
 # Testing
+androidx-test-core = { group = "androidx.test", name = "core", version = "1.6.1" }
 cash-turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 org-robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }

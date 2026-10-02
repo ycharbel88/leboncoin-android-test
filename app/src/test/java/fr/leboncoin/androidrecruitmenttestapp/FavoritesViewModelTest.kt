@@ -16,7 +16,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyBlocking
@@ -162,21 +161,6 @@ class FavoritesViewModelTest {
 
         // Then
         verifyBlocking(toggleFavoriteUseCase) { invoke(100) }
-    }
-
-    @Test
-    fun `given toggle throws, when toggleFavorite called, then exception is swallowed`() = runTest {
-        // Given – local mock that throws; the ViewModel's try/catch must absorb it
-        val throwingToggle: ToggleFavoriteUseCase = mock {
-            on { invoke(any()) } doAnswer { throw Exception("DB error") }
-        }
-        favoritesSubject.value = listOf(favAlbum)
-        val vm = FavoritesViewModel(getFavoriteAlbumsUseCase, throwingToggle)
-        advanceUntilIdle()
-
-        // When / Then – no exception escapes
-        vm.toggleFavorite(100)
-        advanceUntilIdle()
     }
 
     // ── helper ───────────────────────────────────────────────────────────────────

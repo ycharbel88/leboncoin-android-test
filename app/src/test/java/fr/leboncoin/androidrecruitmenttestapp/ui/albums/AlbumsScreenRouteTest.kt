@@ -3,19 +3,21 @@ package fr.leboncoin.androidrecruitmenttestapp.ui.albums
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.paging.PagingData
 import com.adevinta.spark.SparkTheme
 import fr.leboncoin.androidrecruitmenttestapp.FakeRepository
 import fr.leboncoin.androidrecruitmenttestapp.ui.TestTags
 import fr.leboncoin.domain.model.Album
-import fr.leboncoin.domain.usecase.GetAlbumsStreamUseCase
+import fr.leboncoin.domain.usecase.GetAlbumsPagingUseCase
 import fr.leboncoin.domain.usecase.RefreshAlbumsUseCase
 import fr.leboncoin.domain.usecase.ToggleFavoriteUseCase
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -40,17 +42,18 @@ class AlbumsScreenRouteTest {
     )
 
     private fun makeViewModel(
-        albumsFlow: Flow<List<Album>> = emptyFlow(),
+        albums: List<Album> = emptyList(),
         onRefresh: suspend () -> Unit = {},
         onToggle: suspend (Int) -> Unit = {},
     ): AlbumsViewModel {
         val fakeRepo = object : FakeRepository() {
-            override fun getAlbumsStream(): Flow<List<Album>> = albumsFlow
+            override fun getAlbumsPaged(): Flow<PagingData<Album>> =
+                flowOf(if (albums.isEmpty()) PagingData.empty() else PagingData.from(albums))
             override suspend fun refreshAlbums() = onRefresh()
             override suspend fun toggleFavorite(albumId: Int) = onToggle(albumId)
         }
         return AlbumsViewModel(
-            getAlbumsStreamUseCase = GetAlbumsStreamUseCase(fakeRepo),
+            getAlbumsPagingUseCase = GetAlbumsPagingUseCase(fakeRepo),
             refreshAlbumsUseCase = RefreshAlbumsUseCase(fakeRepo),
             toggleFavoriteUseCase = ToggleFavoriteUseCase(fakeRepo),
         )
@@ -58,36 +61,26 @@ class AlbumsScreenRouteTest {
 
     @Test
     fun loadingState_displaysLoadingIndicator() {
-        // emptyFlow never emits → combine never produces a value → stateIn stays at Loading
-        val viewModel = makeViewModel(albumsFlow = emptyFlow())
+        // refresh never returns → isRefreshing stays true; no paged items → Loading shown
+        val viewModel = makeViewModel(
+            albums = emptyList(),
+            onRefresh = { suspendCancellableCoroutine { } },
+        )
 
         composeTestRule.setContent {
-            SparkTheme {
-                AlbumsScreenRoute(
-                    onItemSelected = {},
-                    viewModel = viewModel,
-                )
-            }
+            SparkTheme { AlbumsScreenRoute(onItemSelected = {}, viewModel = viewModel) }
         }
-
-        composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithTag(TestTags.LOADING_INDICATOR).assertIsDisplayed()
     }
 
     @Test
     fun successState_displaysAlbumList() {
-        val viewModel = makeViewModel(albumsFlow = MutableStateFlow(listOf(testAlbum)))
+        val viewModel = makeViewModel(albums = listOf(testAlbum))
 
         composeTestRule.setContent {
-            SparkTheme {
-                AlbumsScreenRoute(
-                    onItemSelected = {},
-                    viewModel = viewModel,
-                )
-            }
+            SparkTheme { AlbumsScreenRoute(onItemSelected = {}, viewModel = viewModel) }
         }
-
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithTag(TestTags.ALBUMS_LIST).assertIsDisplayed()
@@ -96,22 +89,20 @@ class AlbumsScreenRouteTest {
 
     @Test
     fun errorState_displaysErrorMessageAndRetryButton() {
-        // Empty albums + refreshAlbums throws → Error state
         val viewModel = makeViewModel(
-            albumsFlow = MutableStateFlow(emptyList()),
+            albums = emptyList(),
             onRefresh = { throw Exception("Network error") },
         )
 
         composeTestRule.setContent {
-            SparkTheme {
-                AlbumsScreenRoute(
-                    onItemSelected = {},
-                    viewModel = viewModel,
-                )
-            }
+            SparkTheme { AlbumsScreenRoute(onItemSelected = {}, viewModel = viewModel) }
         }
-
         composeTestRule.waitForIdle()
+        // With Robolectric the viewModelScope coroutine runs on the main looper;
+        // poll until the error state node appears (max 5 s).
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            composeTestRule.onAllNodesWithTag(TestTags.ERROR_STATE).fetchSemanticsNodes().isNotEmpty()
+        }
 
         composeTestRule.onNodeWithTag(TestTags.ERROR_STATE).assertIsDisplayed()
         composeTestRule.onNodeWithText("Network error").assertIsDisplayed()
@@ -120,7 +111,7 @@ class AlbumsScreenRouteTest {
     @Test
     fun successState_clickAlbumItem_callsOnItemSelected() {
         var selected: Album? = null
-        val viewModel = makeViewModel(albumsFlow = MutableStateFlow(listOf(testAlbum)))
+        val viewModel = makeViewModel(albums = listOf(testAlbum))
 
         composeTestRule.setContent {
             SparkTheme {
@@ -130,7 +121,6 @@ class AlbumsScreenRouteTest {
                 )
             }
         }
-
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag("${TestTags.ALBUM_ITEM}42").performClick()
 
@@ -141,19 +131,13 @@ class AlbumsScreenRouteTest {
     fun successState_clickFavoriteButton_forwardsToggleToViewModel() {
         var toggledId: Int? = null
         val viewModel = makeViewModel(
-            albumsFlow = MutableStateFlow(listOf(testAlbum)),
+            albums = listOf(testAlbum),
             onToggle = { toggledId = it },
         )
 
         composeTestRule.setContent {
-            SparkTheme {
-                AlbumsScreenRoute(
-                    onItemSelected = {},
-                    viewModel = viewModel,
-                )
-            }
+            SparkTheme { AlbumsScreenRoute(onItemSelected = {}, viewModel = viewModel) }
         }
-
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag("${TestTags.FAVORITE_BUTTON}42").performClick()
         composeTestRule.waitForIdle()
@@ -165,7 +149,7 @@ class AlbumsScreenRouteTest {
     fun errorState_clickRetryButton_callsViewModelRetry() {
         var refreshCallCount = 0
         val viewModel = makeViewModel(
-            albumsFlow = MutableStateFlow(emptyList()),
+            albums = emptyList(),
             onRefresh = {
                 refreshCallCount++
                 throw Exception("Network error")
@@ -173,20 +157,20 @@ class AlbumsScreenRouteTest {
         )
 
         composeTestRule.setContent {
-            SparkTheme {
-                AlbumsScreenRoute(
-                    onItemSelected = {},
-                    viewModel = viewModel,
-                )
-            }
+            SparkTheme { AlbumsScreenRoute(onItemSelected = {}, viewModel = viewModel) }
         }
-
-        // init triggers one load; after waitForIdle the Error state is shown
         composeTestRule.waitForIdle()
+        // Wait until the retry button appears (error state rendered)
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            composeTestRule.onAllNodesWithTag(TestTags.RETRY_BUTTON).fetchSemanticsNodes().isNotEmpty()
+        }
         composeTestRule.onNodeWithTag(TestTags.RETRY_BUTTON).performClick()
+        // Wait until retry refresh fires (count becomes 2)
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            refreshCallCount >= 2
+        }
         composeTestRule.waitForIdle()
 
-        // init call + retry click = 2 total refreshAlbums invocations
         assertEquals(2, refreshCallCount)
     }
 }
