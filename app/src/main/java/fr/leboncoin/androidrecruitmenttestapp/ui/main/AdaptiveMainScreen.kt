@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,6 +89,7 @@ fun AdaptiveMainScreen(
     )
     val navigator = rememberListDetailPaneScaffoldNavigator<Int>()
     val coroutineScope = rememberCoroutineScope()
+    val saveableStateHolder = rememberSaveableStateHolder()
     var selectedTab by rememberSaveable {
         mutableStateOf(AlbumTab.Albums)
     }
@@ -180,10 +182,12 @@ fun AdaptiveMainScreen(
                             .background(Color.Red)
                             .fillMaxWidth(),
                         contentAlignment = Alignment.TopStart,
-                        ) {
-                        when (selectedTab) {
-                            AlbumTab.Albums -> albumsContent(onAlbumSelected)
-                            AlbumTab.Favorites -> favoritesContent(onAlbumSelected)
+                    ) {
+                        saveableStateHolder.SaveableStateProvider(key = selectedTab) {
+                            when (selectedTab) {
+                                AlbumTab.Albums -> albumsContent(onAlbumSelected)
+                                AlbumTab.Favorites -> favoritesContent(onAlbumSelected)
+                            }
                         }
                     }
                 }
