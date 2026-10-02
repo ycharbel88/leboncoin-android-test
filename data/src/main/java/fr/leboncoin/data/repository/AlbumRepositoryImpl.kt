@@ -11,10 +11,8 @@ import fr.leboncoin.data.network.api.AlbumApiService
 import fr.leboncoin.domain.model.Album
 import fr.leboncoin.domain.repository.AlbumRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import kotlin.coroutines.cancellation.CancellationException
 
 class AlbumRepositoryImpl @Inject constructor(
     private val albumApiService: AlbumApiService,
@@ -51,18 +49,5 @@ class AlbumRepositoryImpl @Inject constructor(
         // Pass entities with isFavorite = false; refreshAtomically reads current favorites
         // and re-applies them atomically, so concurrent toggles are not lost.
         albumDao.refreshAtomically(dtos.map { dto -> dto.toEntity(isFavorite = false) })
-    }
-
-    override suspend fun getAllAlbums(): List<Album> {
-        try {
-            refreshAlbums()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            val cached = getAlbumsStream().first()
-            if (cached.isNotEmpty()) return cached
-            throw e
-        }
-        return getAlbumsStream().first()
     }
 }

@@ -11,5 +11,4 @@ interface AlbumRepository {
     fun getAlbumsPaged(): Flow<PagingData<Album>>
     suspend fun toggleFavorite(albumId: Int)
     suspend fun refreshAlbums()
-    suspend fun getAllAlbums(): List<Album>
 }

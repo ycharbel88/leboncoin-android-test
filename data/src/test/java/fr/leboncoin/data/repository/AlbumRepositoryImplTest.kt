@@ -18,9 +18,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
-import kotlin.coroutines.cancellation.CancellationException
 
 class AlbumRepositoryImplTest {
 
@@ -101,41 +99,6 @@ class AlbumRepositoryImplTest {
         verify(dao).refreshAtomically(listOf(entity(1), entity(2), entity(3)))
         // No per-item isFavorite lookup from repository
         verify(dao, never()).isFavorite(org.mockito.ArgumentMatchers.anyInt())
-    }
-
-    @Test
-    fun `get all returns cache when refresh fails`() = runTest {
-        `when`(api.getAlbums()).thenThrow(IllegalStateException("Network failed"))
-        `when`(dao.getAlbums()).thenReturn(
-            flowOf(listOf(entity(favorite = true)))
-        )
-
-        val result = repository.getAllAlbums()
-
-        assertEquals(listOf(album(favorite = true)), result)
-    }
-
-    @Test
-    fun `get all rethrows refresh failure when cache is empty`() = runTest {
-        val failure = IllegalStateException("Network failed")
-        `when`(api.getAlbums()).thenThrow(failure)
-        `when`(dao.getAlbums()).thenReturn(flowOf(emptyList()))
-
-        assertSameFailure(failure) {
-            repository.getAllAlbums()
-        }
-    }
-
-    @Test
-    fun `get all propagates cancellation without reading cache`() = runTest {
-        val cancellation = CancellationException("Refresh cancelled")
-        `when`(api.getAlbums()).thenThrow(cancellation)
-
-        assertSameFailure(cancellation) {
-            repository.getAllAlbums()
-        }
-
-        verifyNoInteractions(dao)
     }
 
     // Fixtures

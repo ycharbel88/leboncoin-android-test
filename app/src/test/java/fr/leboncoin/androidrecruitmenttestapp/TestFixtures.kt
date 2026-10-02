@@ -18,5 +18,4 @@ open class FakeRepository : AlbumRepository {
     override fun getAlbumsPaged(): Flow<PagingData<Album>> = flowOf(PagingData.empty())
     override suspend fun toggleFavorite(albumId: Int) {}
     override suspend fun refreshAlbums() {}
-    override suspend fun getAllAlbums(): List<Album> = emptyList()
 }

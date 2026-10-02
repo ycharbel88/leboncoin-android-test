@@ -59,6 +59,9 @@ android {
         implementation(libs.retrofit.kotlin.serialization)
         implementation(libs.okhttp.logging)
 
+        implementation(libs.coil.core)
+        implementation(libs.coil.network.okhttp)
+
         implementation(libs.kotlin.serialization.json)
         testImplementation(libs.cash.turbine)
         testImplementation(libs.org.robolectric)

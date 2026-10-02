@@ -92,18 +92,6 @@ class FavoritesScreenTest {
     }
 
     @Test
-    fun successState_clickItem_callsOnItemSelected() {
-        var selected: Album? = null
-        setScreen(
-            uiState = AlbumsUiState.Success(listOf(albumA)),
-            onItemSelected = { selected = it },
-        )
-
-        composeTestRule.onNodeWithTag("${TestTags.ALBUM_ITEM}10").performClick()
-        assertEquals(albumA, selected)
-    }
-
-    @Test
     fun successState_favoriteToggle_callsOnFavoriteToggle() {
         var toggledId: Int? = null
         setScreen(

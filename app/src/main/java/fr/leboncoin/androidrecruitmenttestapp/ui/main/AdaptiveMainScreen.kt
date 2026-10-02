@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.window.core.layout.WindowSizeClass
 import com.adevinta.spark.SparkTheme
 import com.adevinta.spark.components.scaffold.Scaffold
@@ -235,6 +236,37 @@ private fun AlbumDetailPlaceholder(
         Text(
             text = stringResource(R.string.select_album_to_view_details),
             style = SparkTheme.typography.body1,
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun AlbumDetailPlaceholderPreview() {
+    SparkTheme {
+        AlbumDetailPlaceholder()
+    }
+}
+
+@Preview
+@Composable
+private fun AlbumNavigationBarPreview() {
+    SparkTheme {
+        AlbumNavigationBar(
+            selectedTab = AlbumTab.Albums,
+            onTabSelected = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun AdaptiveMainScreenPreview() {
+    SparkTheme {
+        AdaptiveMainScreen(
+            albumsContent = {},
+            favoritesContent = {},
+            detailContent = { AlbumDetailPlaceholder() },
         )
     }
 }
