@@ -36,6 +36,10 @@ class AlbumsViewModel @Inject constructor(
     private val _refreshError = MutableStateFlow<String?>(null)
     val refreshError: StateFlow<String?> = _refreshError.asStateFlow()
 
+    init {
+        refresh()
+    }
+
     fun refresh() {
         if (_isRefreshing.value) return   // prevent overlapping refreshes
         viewModelScope.launch {

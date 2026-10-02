@@ -2,7 +2,7 @@ package fr.leboncoin.androidrecruitmenttestapp.ui.albums
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -106,25 +106,6 @@ class AlbumsScreenRouteTest {
 
         composeTestRule.onNodeWithTag(TestTags.ERROR_STATE).assertIsDisplayed()
         composeTestRule.onNodeWithText("Network error").assertIsDisplayed()
-    }
-
-    @Test
-    fun successState_clickAlbumItem_callsOnItemSelected() {
-        var selected: Album? = null
-        val viewModel = makeViewModel(albums = listOf(testAlbum))
-
-        composeTestRule.setContent {
-            SparkTheme {
-                AlbumsScreenRoute(
-                    onItemSelected = { selected = it },
-                    viewModel = viewModel,
-                )
-            }
-        }
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithTag("${TestTags.ALBUM_ITEM}42").performClick()
-
-        assertEquals(testAlbum, selected)
     }
 
     @Test

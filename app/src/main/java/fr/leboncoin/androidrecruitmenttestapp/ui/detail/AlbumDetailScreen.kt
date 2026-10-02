@@ -14,10 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.leboncoin.androidrecruitmenttestapp.ui.TestTags
@@ -39,6 +36,10 @@ import com.adevinta.spark.components.progress.Spinner
 import com.adevinta.spark.components.scaffold.Scaffold
 import fr.leboncoin.androidrecruitmenttestapp.R
 import fr.leboncoin.domain.model.Album
+import com.adevinta.spark.components.surface.Surface
+import com.adevinta.spark.components.icons.Icon
+import com.adevinta.spark.components.icons.IconButton
+import com.adevinta.spark.components.text.Text
 
 
 @OptIn(ExperimentalSparkApi::class)
@@ -117,6 +118,8 @@ private fun AlbumArtwork(
             .aspectRatio(1f),
     ) {
 
+        val placeholder = painterResource(R.drawable.ic_image_placeholder)
+
         AsyncImage(
             modifier = Modifier
                 .fillMaxWidth()
@@ -127,7 +130,10 @@ private fun AlbumArtwork(
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .build(),
             contentDescription = album.title,
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            placeholder = placeholder,
+            error = placeholder,
+            fallback = placeholder,
         )
 
         FavoriteButton(
@@ -150,7 +156,7 @@ private fun FavoriteButton(
         modifier = modifier,
         shape = CircleShape,
         color = Color.White,
-        shadowElevation = 2.dp,
+        elevation = 2.dp,
     ) {
         IconButton(onClick = onClick) {
             Icon(

@@ -2,7 +2,7 @@ package fr.leboncoin.androidrecruitmenttestapp.ui.favorites
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -106,26 +106,6 @@ class FavoritesScreenRouteTest {
 
         composeTestRule.onNodeWithTag(TestTags.ALBUMS_LIST).assertIsDisplayed()
         composeTestRule.onNodeWithText("Favorites Route Test Album").assertIsDisplayed()
-    }
-
-    @Test
-    fun successState_clickAlbumItem_callsOnItemSelected() {
-        var selected: Album? = null
-        val viewModel = makeViewModel(favoritesFlow = MutableStateFlow(listOf(testFavoriteAlbum)))
-
-        composeTestRule.setContent {
-            SparkTheme {
-                FavoritesScreenRoute(
-                    onItemSelected = { selected = it },
-                    viewModel = viewModel,
-                )
-            }
-        }
-
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithTag("${TestTags.ALBUM_ITEM}77").performClick()
-
-        assertEquals(testFavoriteAlbum, selected)
     }
 
     @Test

@@ -20,7 +20,6 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.cash.turbine)
-    testImplementation(libs.org.robolectric)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
 }

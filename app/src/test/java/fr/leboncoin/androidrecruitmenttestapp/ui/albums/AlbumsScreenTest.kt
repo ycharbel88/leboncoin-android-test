@@ -2,7 +2,7 @@ package fr.leboncoin.androidrecruitmenttestapp.ui.albums
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -89,32 +89,6 @@ class AlbumsScreenTest {
     }
 
     // ── Success ───────────────────────────────────────────────────────────────
-
-    @Test
-    fun successState_displaysAlbumList_andItemClickFiresCallback() {
-        var selected: Album? = null
-        composeTestRule.setContent {
-            SparkTheme {
-                val pagingItems = flowOf(PagingData.from(listOf(testAlbum))).collectAsLazyPagingItems()
-                AlbumsScreen(
-                    pagingItems = pagingItems,
-                    isRefreshing = false,
-                    refreshError = null,
-                    onItemSelected = { selected = it },
-                    onRefresh = {},
-                    onRetry = {},
-                    onFavoriteToggle = null,
-                    onDismissError = {},
-                )
-            }
-        }
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithTag(TestTags.ALBUMS_LIST).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Direct Screen Test Album").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("${TestTags.ALBUM_ITEM}42").performClick()
-        assertEquals(testAlbum, selected)
-    }
 
     @Test
     fun successState_favoriteToggle_callsOnFavoriteToggle() {

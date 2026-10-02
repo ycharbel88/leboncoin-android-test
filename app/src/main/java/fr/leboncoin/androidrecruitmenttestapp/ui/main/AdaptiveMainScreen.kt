@@ -14,14 +14,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
@@ -36,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,18 +43,25 @@ import fr.leboncoin.androidrecruitmenttestapp.ui.albums.AlbumsScreenRoute
 import fr.leboncoin.androidrecruitmenttestapp.ui.favorites.FavoritesScreenRoute
 import fr.leboncoin.domain.model.Album
 import kotlinx.coroutines.launch
+import com.adevinta.spark.components.icons.IconButton
+import com.adevinta.spark.components.icons.Icon
+import com.adevinta.spark.components.appbar.TopAppBar
+import com.adevinta.spark.components.text.Text
+import com.adevinta.spark.components.appbar.NavigationBar
+import com.adevinta.spark.components.appbar.NavigationBarItem
+import com.adevinta.spark.icons.SparkIcon
 
 private enum class AlbumTab(
     val label: String,
-    val icon: ImageVector,
+    val icon: SparkIcon,
 ) {
     Albums(
         label = "Albums",
-        icon = Icons.AutoMirrored.Filled.List,
+        icon = SparkIcon.Vector(Icons.AutoMirrored.Filled.List),
     ),
     Favorites(
         label = "Favorites",
-        icon = Icons.Default.Favorite,
+        icon = SparkIcon.Vector(Icons.Default.Favorite),
     ),
 }
 
@@ -83,7 +83,8 @@ fun AdaptiveMainScreen(
         else AlbumDetailPlaceholder()
     },
 ) {
-    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
+    // Compact when the window width is below the medium breakpoint (600 dp).
     val isCompact = !windowSizeClass.isWidthAtLeastBreakpoint(
         WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
     )
@@ -222,12 +223,7 @@ private fun AlbumNavigationBar(
             NavigationBarItem(
                 selected = selectedTab == tab,
                 onClick = { onTabSelected(tab) },
-                icon = {
-                    Icon(
-                        imageVector = tab.icon,
-                        contentDescription = null,
-                    )
-                },
+                icon = tab.icon,
                 label = {
                     Text(text = tab.label)
                 },
