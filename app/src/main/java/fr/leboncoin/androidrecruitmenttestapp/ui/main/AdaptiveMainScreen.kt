@@ -110,10 +110,17 @@ fun AdaptiveMainScreen(
     }
 
     val canNavigateBack = navigator.canNavigateBack()
+    val isNotOnDefaultTab = selectedTab != AlbumTab.Albums
 
     BackHandler(
-        enabled = canNavigateBack,
-        onBack = onNavigateBack,
+        enabled = canNavigateBack || isNotOnDefaultTab,
+        onBack = {
+            if (canNavigateBack) {
+                onNavigateBack()
+            } else {
+                selectedTab = AlbumTab.Albums
+            }
+        },
     )
 
     val isDetailFullScreen = isCompact &&

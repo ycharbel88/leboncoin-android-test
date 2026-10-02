@@ -230,6 +230,25 @@ class AdaptiveMainScreenCompactTest {
         composeTestRule.onNodeWithTag(TestTags.TOOLBAR_TITLE).assertTextEquals("Favorites")
     }
 
+    @Test
+    fun compact_favoritesTab_systemBack_returnsToAlbumsTab() {
+        setContent()
+
+        // Switch to Favorites tab
+        composeTestRule.onNodeWithText("Favorites").performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(TestTags.TOOLBAR_TITLE).assertTextEquals("Favorites")
+
+        // Press system Back
+        composeTestRule.activityRule.scenario.onActivity { activity ->
+            activity.onBackPressedDispatcher.onBackPressed()
+        }
+        composeTestRule.waitForIdle()
+
+        // Should return to Albums tab
+        composeTestRule.onNodeWithTag(TestTags.TOOLBAR_TITLE).assertTextEquals("Albums")
+    }
+
     // ── State restoration ─────────────────────────────────────────────────────
 
     @Test
